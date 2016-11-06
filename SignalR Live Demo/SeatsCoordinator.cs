@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
 namespace SignalR_Live_Demo
 {
     public static class SeatsCoordinator
@@ -11,6 +7,8 @@ namespace SignalR_Live_Demo
         public static readonly int ColumnCount = 7;
 
         public static string[,] SeatReservation { get; private set; }
+
+        public static int UserIdSeed = 0;
 
         static SeatsCoordinator()
         {

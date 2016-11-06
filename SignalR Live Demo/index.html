@@ -9,11 +9,13 @@
             border: 1px solid black;
             width: 25px;
             height: 25px;
+            text-align: center;
+            vertical-align: middle;
+            font-size: small;
         }
     </style>
 </head>
 <body>
-    <h2>SignalR Live Demo</h2>
     <div id="userId"></div><br/>
     <div id="seats"></div><br/>
     <input type="button" id="reset" value="Reset"/>
@@ -31,10 +33,10 @@
             if (!_currentUserId || _currentUserId.length === 0)
                 return console.log('Missing userId');
                 
-            var row = $(this).attr('data-row');
-            var column = $(this).attr('data-column');
+            var row = $(this).attr('data-row'),
+                column = $(this).attr('data-column');
 
-            console.log(row + ' - ' + column);
+            $(this).css('background-color', '#FFFF00');
 
             _seatsHub.server.reserveSeat(_currentUserId, row, column);
         }
@@ -44,42 +46,54 @@
                 method: 'GET',
                 url: '/api/seats/size'
             }).done(function (data) {
-                var rowCount = data.rows;
-                var columnCount = data.columns;
+                var rowCount = data.rows,
+                    columnCount = data.columns;
 
-                var theaterContext = '<table>';
+                var theater = $('<table></table>');
 
                 for (var i = 0; i < rowCount; i++) {
-                    theaterContext += '<tr>';
+                    var row = $('<tr></tr>');
 
                     for (var j = 0; j < columnCount; j++) {
-                        theaterContext += '<td data-row="' + i + '" data-column="' + j + '"></td>';
+                        var seat = $('<td></td>');
+
+                        seat.attr('data-row', i);
+                        seat.attr('data-column', j);
+                        row.append(seat);
                     }
 
-                    theaterContext += '</tr>';
+                    theater.append(row);
                 }
 
-                $('#seats').append(theaterContext);
+                $('#seats').append(theater);
 
                 $('body').on('click', 'td', reserveSeat);
             });
         }
 
         function updateSeat(userId, row, column) {
-            console.log('update seat: ' + userId + '(' + row + ', ' + column + ')');
-
-            var cell = $('td[data-row="' + row + '"][data-column="' + column + '"]');
+            var cell = $('td[data-row="' + row + '"][data-column="' + column + '"]'),
+                color;
 
             if (!userId || userId.length === 0)
-                cell.css('background-color', '#AFFFFF');
+                color = '#AFFFFF';
             else if (userId === _currentUserId)
-                cell.css('background-color', '#0FAF0F');
+                color = '#0FAF0F';
             else
-                cell.css('background-color', '#FF0F0F');
+                color = '#FF0F0F';
+
+            cell.css('background-color', color);
+            cell.html(userId);
         }
 
         function connectHub() {
             _seatsHub = $.connection.seatsHub;
+
+            _seatsHub.client.sendId = function(userId) {
+                _currentUserId = userId;
+
+                $('#userId').html('Your userId is: ' + _currentUserId);
+            };
 
             _seatsHub.client.notifyReservation = function(userId, row, column) {
                 updateSeat(userId, row, column);
@@ -87,15 +101,10 @@
 
             _seatsHub.client.reset = function() {
                 $('td').css('background-color', '#AFFFFF');
+                $('td').html('');
             }
 
             $.connection.hub.start().done(function() {
-                _currentUserId = $.connection.hub.id;
-
-                console.log('UserId: ' + _currentUserId);
-
-                $('#userId').html('Your userId is: ' + _currentUserId);
-
                 $.ajax({
                     method: 'GET',
                     url: '/api/seats'

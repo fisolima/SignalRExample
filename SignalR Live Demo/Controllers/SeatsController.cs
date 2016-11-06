@@ -1,5 +1,4 @@
-﻿using System;
-using System.Web.Http;
+﻿using System.Web.Http;
 using Microsoft.AspNet.SignalR;
 using SignalR_Live_Demo.Hubs;
 

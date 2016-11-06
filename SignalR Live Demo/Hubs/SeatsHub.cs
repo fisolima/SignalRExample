@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Web;
+using System.Threading.Tasks;
 using Microsoft.AspNet.SignalR;
 
 namespace SignalR_Live_Demo.Hubs
@@ -23,6 +21,13 @@ namespace SignalR_Live_Demo.Hubs
             }
 
             Clients.All.notifyReservation(userId, row, column);
+        }
+
+        public override Task OnConnected()
+        {
+            Clients.Caller.sendId( (++SeatsCoordinator.UserIdSeed).ToString() );
+
+            return base.OnConnected();
         }
     }
 }
